@@ -8,6 +8,18 @@
 
 #define return_if(x, y) ({if (x) {return y;}})
 
+#define GENERATE_PRINT(info, fmt) \
+({                       \
+	va_list temp, args;     \
+    va_start(temp, (fmt)); \
+    va_copy(args, temp); \
+	size_t len = vsnprintf(NULL, 0, (fmt), temp); \
+	va_end(temp);           \
+	(info)->log_line = calloc(len + 1, sizeof(char)); \
+	vsnprintf((info)->log_line, len, (fmt), args);  \
+	va_end(args);\
+})
+
 /* Forward Declarations */
 void print_trace(const char *fn, int ln, const char *fmt, ...);
 void print_debug(const char *fn, int ln, const char *fmt, ...);
@@ -142,15 +154,7 @@ void print_trace(const char *fn, int ln, const char *fmt, ...) {
   return_if(this->log_level >= LOG_TRACE,);
 
   log_info_t *info = prepare_data(fn, ln, LOG_TRACE);
-  va_list temp, args;
-  va_start (temp, fmt);
-  va_copy(args, temp);
-  size_t len = vsnprintf(NULL, 0, fmt, temp);
-  va_end(temp);
-  info->log_line = calloc(len + 1, sizeof(char));
-  vsnprintf(info->log_line, len + 1, fmt, args);
-  va_end (args);
-
+  GENERATE_PRINT(info, fmt);
   push_to_queue(info);
 }
 
@@ -158,15 +162,7 @@ void print_debug(const char *fn, int ln, const char *fmt, ...) {
   return_if(this->log_level >= LOG_DEBUG,);
 
   log_info_t *info = prepare_data(fn, ln, LOG_DEBUG);
-  va_list temp, args;
-  va_start (temp, fmt);
-  va_copy(args, temp);
-  size_t len = vsnprintf(NULL, 0, fmt, temp);
-  va_end(temp);
-  info->log_line = calloc(len + 1, sizeof(char));
-  vsnprintf(info->log_line, len + 1, fmt, args);
-  va_end (args);
-
+  GENERATE_PRINT(info, fmt);
   push_to_queue(info);
 }
 
@@ -174,15 +170,7 @@ void print_info(const char *fn, int ln, const char *fmt, ...) {
   return_if(this->log_level >= LOG_INFO,);
 
   log_info_t *info = prepare_data(fn, ln, LOG_INFO);
-  va_list temp, args;
-  va_start (temp, fmt);
-  va_copy(args, temp);
-  size_t len = vsnprintf(NULL, 0, fmt, temp);
-  va_end(temp);
-  info->log_line = calloc(len + 1, sizeof(char));
-  vsnprintf(info->log_line, len + 1, fmt, args);
-  va_end (args);
-
+  GENERATE_PRINT(info, fmt);
   push_to_queue(info);
 }
 
@@ -190,14 +178,7 @@ void print_warn(const char *fn, int ln, const char *fmt, ...) {
   return_if(this->log_level >= LOG_WARN,);
 
   log_info_t *info = prepare_data(fn, ln, LOG_WARN);
-  va_list temp, args;
-  va_start (temp, fmt);
-  va_copy(args, temp);
-  size_t len = vsnprintf(NULL, 0, fmt, temp);
-  va_end(temp);
-  info->log_line = calloc(len + 1, sizeof(char));
-  vsnprintf(info->log_line, len + 1, fmt, args);
-  va_end (args);
+  GENERATE_PRINT(info, fmt);
 
   push_to_queue(info);
 }
@@ -206,15 +187,7 @@ void print_error(const char *fn, int ln, const char *fmt, ...) {
   return_if(this->log_level >= LOG_ERROR,);
 
   log_info_t *info = prepare_data(fn, ln, LOG_ERROR);
-  va_list temp, args;
-  va_start (temp, fmt);
-  va_copy (args, temp);
-  size_t len = vsnprintf(NULL, 0, fmt, temp);
-  va_end(temp);
-  info->log_line = calloc(len + 1, sizeof(char));
-  vsnprintf(info->log_line, len + 1, fmt, args);
-  va_end (args);
-
+  GENERATE_PRINT(info, fmt);
   push_to_queue(info);
 }
 
