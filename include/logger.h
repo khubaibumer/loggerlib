@@ -23,7 +23,6 @@ typedef enum {
 } kLogLevel;
 
 typedef struct {
-
   void (*trace) (const char *fn, int ln, const char *fmt, ...);
   void (*debug) (const char *fn, int ln, const char *fmt, ...);
   void (*info)  (const char *fn, int ln, const char *fmt, ...);
