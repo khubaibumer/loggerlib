@@ -230,7 +230,7 @@ const char *get_log_str(kLogLevel level) {
 }
 
 void change_file() {
-  printf("Changing File, current File Size %lu\n", this->current_file_size);
+  printf("Changing File, current File Size %zu\n", this->current_file_size);
   fclose(this->logfile);
   char *filename = mkfile_name(false);
   this->logfile = fopen(filename, "w+");
