@@ -148,7 +148,7 @@ void print_trace(const char *fn, int ln, const char *fmt, ...) {
   size_t len = vsnprintf(NULL, 0, fmt, temp);
   va_end(temp);
   info->log_line = calloc(len + 1, sizeof(char));
-  vsprintf(info->log_line, fmt, args);
+  vsnprintf(info->log_line, len + 1, fmt, args);
   va_end (args);
 
   push_to_queue(info);
@@ -164,7 +164,7 @@ void print_debug(const char *fn, int ln, const char *fmt, ...) {
   size_t len = vsnprintf(NULL, 0, fmt, temp);
   va_end(temp);
   info->log_line = calloc(len + 1, sizeof(char));
-  vsprintf(info->log_line, fmt, args);
+  vsnprintf(info->log_line, len + 1, fmt, args);
   va_end (args);
 
   push_to_queue(info);
@@ -180,7 +180,7 @@ void print_info(const char *fn, int ln, const char *fmt, ...) {
   size_t len = vsnprintf(NULL, 0, fmt, temp);
   va_end(temp);
   info->log_line = calloc(len + 1, sizeof(char));
-  vsprintf(info->log_line, fmt, args);
+  vsnprintf(info->log_line, len + 1, fmt, args);
   va_end (args);
 
   push_to_queue(info);
@@ -196,7 +196,7 @@ void print_warn(const char *fn, int ln, const char *fmt, ...) {
   size_t len = vsnprintf(NULL, 0, fmt, temp);
   va_end(temp);
   info->log_line = calloc(len + 1, sizeof(char));
-  vsprintf(info->log_line, fmt, args);
+  vsnprintf(info->log_line, len + 1, fmt, args);
   va_end (args);
 
   push_to_queue(info);
@@ -212,7 +212,7 @@ void print_error(const char *fn, int ln, const char *fmt, ...) {
   size_t len = vsnprintf(NULL, 0, fmt, temp);
   va_end(temp);
   info->log_line = calloc(len + 1, sizeof(char));
-  vsprintf(info->log_line, fmt, args);
+  vsnprintf(info->log_line, len + 1, fmt, args);
   va_end (args);
 
   push_to_queue(info);
