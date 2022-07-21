@@ -5,6 +5,9 @@
 #include <syscall.h>
 #include <stdarg.h>
 #include <sys/queue.h>
+#include <fcntl.h>
+#include <libtar.h>
+#include <errno.h>
 
 #define return_if(x, y) ({if (x) {return y;}})
 
@@ -36,6 +39,7 @@ bool queue_lock(void);
 void queue_unlock(void);
 bool push_to_queue(log_info_t *);
 log_info_t *pop_from_queue(void);
+bool compress_log_file(void);
 
 typedef struct log_info {
 	tid_t tid;
@@ -52,6 +56,7 @@ typedef struct {
 	size_t current_file_size;
 	char *file_path;
 	size_t max_file_size;
+	char *filename;
 	FILE *logfile;
 	kLogLevel log_level;
 	bool is_running;
@@ -66,6 +71,7 @@ typedef struct {
 	void (*unlock)(void);
 	bool (*push_back)(log_info_t *);
 	log_info_t *(*pop_front)(void);
+	bool (*compress_file) (void);
 
 } loggerData_t;
 
@@ -110,14 +116,14 @@ logger_t *create_logger(const char *path) {
 		this->unlock = &queue_unlock;
 		this->push_back = &push_to_queue;
 		this->pop_front = &pop_from_queue;
+		this->compress_file = &compress_log_file;
 	}
 
 	assert(chdir(this->file_path) == 0);
 	this->is_running = true;
-	char *file = mkfile_name(true);
-	this->logfile = fopen(file, "w+");
+	this->filename = mkfile_name(true);
+	this->logfile = fopen(this->filename, "w+");
 	TAILQ_INIT(&GET_PRIVATE(this).head);
-	free(file);
 
 	pthread_create(&this->loggerThread, NULL, logging_thread, NULL);
 	pthread_detach(this->loggerThread);
@@ -230,11 +236,12 @@ const char *get_log_str(kLogLevel level) {
 
 void change_file() {
 	printf("Changing File, current File Size %zu\n", this->current_file_size);
+	this->compress_file();
+	free(this->filename);
 	fclose(this->logfile);
-	char *filename = mkfile_name(false);
-	this->logfile = fopen(filename, "w+");
+	this->filename = mkfile_name(false);
+	this->logfile = fopen(this->filename, "w+");
 	assert(this->logfile != NULL);
-	free(filename);
 	this->current_file_size = 0;
 }
 
@@ -277,4 +284,15 @@ void *logging_thread(void *args) {
 		}
 	}
 	return NULL;
+}
+
+bool compress_log_file(void) {
+	TAR *tar = NULL;
+	char *save_dir = ".";
+	tar_open(&tar, this->filename, NULL, O_WRONLY | O_CREAT, 0644, TAR_IGNORE_MAGIC);
+	tar_append_tree(tar, this->file_path, save_dir);
+	tar_append_eof(tar);
+	tar_close(tar);
+
+	return (errno == 0);
 }
