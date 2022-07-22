@@ -19,7 +19,8 @@ typedef enum {
   LOG_DEBUG,
   LOG_INFO,
   LOG_WARN,
-  LOG_ERROR
+  LOG_ERROR,
+  LOG_NONE
 } kLogLevel;
 
 typedef struct {

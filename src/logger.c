@@ -6,8 +6,8 @@
 #include <stdarg.h>
 #include <sys/queue.h>
 #include <fcntl.h>
-#include <libtar.h>
-#include <errno.h>
+#include <zlib.h>
+#include <thread_db.h>
 
 #define return_if(x, y) ({if (x) {return y;}})
 
@@ -39,7 +39,8 @@ bool queue_lock(void);
 void queue_unlock(void);
 bool push_to_queue(log_info_t *);
 log_info_t *pop_from_queue(void);
-bool compress_log_file(void);
+bool ignite_compressor_routine(void);
+void *compress_log_file(void *);
 
 typedef struct log_info {
 	tid_t tid;
@@ -61,6 +62,7 @@ typedef struct {
 	kLogLevel log_level;
 	bool is_running;
 	pthread_t loggerThread;
+	thread_t compressorThread;
 
 	struct {
 		TAILQ_HEAD(tailhead, log_info) head;
@@ -71,9 +73,15 @@ typedef struct {
 	void (*unlock)(void);
 	bool (*push_back)(log_info_t *);
 	log_info_t *(*pop_front)(void);
-	bool (*compress_file) (void);
+	bool (*ignite_compressor)(void);
 
 } loggerData_t;
+
+typedef struct {
+	char *orig_filename;
+	char *compressed_filename;
+	const char *file_path;
+} compressor_params_t;
 
 static logger_t logger = {
 	.trace = &print_trace,
@@ -88,18 +96,22 @@ static logger_t logger = {
 
 char *mkfile_name(bool startup) {
 	time_t timer;
-	char buffer[36] = {0};
+	char buffer[48] = {0};
 	struct tm *tm_info;
+	struct timespec curtime = {0};
 
 	timer = time(NULL);
 	tm_info = localtime(&timer);
+	clock_gettime(CLOCK_MONOTONIC, &curtime);
 
-	size_t bytes = strftime(buffer, 36, "%Y_%m_%d_%H_%M_%S", tm_info);
-	char *time_stamp = calloc(32 + bytes, sizeof(char));
+	size_t millis = (size_t)(curtime.tv_nsec / 1.0e6);
+
+	size_t bytes = strftime(buffer, 48, "%Y_%m_%d_%H_%M_%S", tm_info);
+	char *time_stamp = calloc(40 + bytes, sizeof(char));
 	if (startup) {
-		sprintf(time_stamp, "LogFile_%s_startup.log", buffer);
+		sprintf(time_stamp, "LogFile_%s_%03ld_startup.log", buffer, millis);
 	} else {
-		sprintf(time_stamp, "LogFile_%s.log", buffer);
+		sprintf(time_stamp, "LogFile_%s_%03ld.log", buffer, millis);
 	}
 	return time_stamp;
 }
@@ -116,7 +128,7 @@ logger_t *create_logger(const char *path) {
 		this->unlock = &queue_unlock;
 		this->push_back = &push_to_queue;
 		this->pop_front = &pop_from_queue;
-		this->compress_file = &compress_log_file;
+		this->ignite_compressor = &ignite_compressor_routine;
 	}
 
 	assert(chdir(this->file_path) == 0);
@@ -184,7 +196,7 @@ log_info_t *pop_from_queue() {
 }
 
 void print_trace(const char *fn, int ln, const char *fmt, ...) {
-	return_if(this->log_level >= LOG_TRACE,);
+	return_if(this->log_level > LOG_TRACE,);
 
 	log_info_t *info = prepare_data(fn, ln, LOG_TRACE);
 	GENERATE_PRINT(info, fmt);
@@ -192,7 +204,7 @@ void print_trace(const char *fn, int ln, const char *fmt, ...) {
 }
 
 void print_debug(const char *fn, int ln, const char *fmt, ...) {
-	return_if(this->log_level >= LOG_DEBUG,);
+	return_if(this->log_level > LOG_DEBUG,);
 
 	log_info_t *info = prepare_data(fn, ln, LOG_DEBUG);
 	GENERATE_PRINT(info, fmt);
@@ -200,7 +212,7 @@ void print_debug(const char *fn, int ln, const char *fmt, ...) {
 }
 
 void print_info(const char *fn, int ln, const char *fmt, ...) {
-	return_if(this->log_level >= LOG_INFO,);
+	return_if(this->log_level > LOG_INFO,);
 
 	log_info_t *info = prepare_data(fn, ln, LOG_INFO);
 	GENERATE_PRINT(info, fmt);
@@ -208,7 +220,7 @@ void print_info(const char *fn, int ln, const char *fmt, ...) {
 }
 
 void print_warn(const char *fn, int ln, const char *fmt, ...) {
-	return_if(this->log_level >= LOG_WARN,);
+	return_if(this->log_level > LOG_WARN,);
 
 	log_info_t *info = prepare_data(fn, ln, LOG_WARN);
 	GENERATE_PRINT(info, fmt);
@@ -216,7 +228,7 @@ void print_warn(const char *fn, int ln, const char *fmt, ...) {
 }
 
 void print_error(const char *fn, int ln, const char *fmt, ...) {
-	return_if(this->log_level >= LOG_ERROR,);
+	return_if(this->log_level > LOG_ERROR,);
 
 	log_info_t *info = prepare_data(fn, ln, LOG_ERROR);
 	GENERATE_PRINT(info, fmt);
@@ -230,15 +242,15 @@ const char *get_log_str(kLogLevel level) {
 		case LOG_INFO: return "INFO";
 		case LOG_WARN: return "WARN";
 		case LOG_ERROR: return "ERROR";
+		case LOG_NONE: return "NO LOGGING";
 		default: return "UNKNOWN";
 	}
 }
 
 void change_file() {
 	printf("Changing File, current File Size %zu\n", this->current_file_size);
-	this->compress_file();
-	free(this->filename);
 	fclose(this->logfile);
+	this->ignite_compressor();
 	this->filename = mkfile_name(false);
 	this->logfile = fopen(this->filename, "w+");
 	assert(this->logfile != NULL);
@@ -249,12 +261,18 @@ char *get_current_time_stamp() {
 	time_t timer;
 	char buffer[48] = {0};
 	struct tm *tm_info;
+	struct timespec curtime = {0};
 
 	timer = time(NULL);
 	tm_info = localtime(&timer);
+	clock_gettime(CLOCK_MONOTONIC, &curtime);
+	size_t millis = (size_t)(curtime.tv_nsec / 1.0e6);
 
 	strftime(buffer, sizeof(buffer), "%Y %m %d %H:%M:%S", tm_info);
-	return strdup(buffer);
+	size_t len = strlen(buffer) + 5;
+	char *ts = calloc(len, sizeof(char));
+	sprintf(ts, "%s,%03ld", buffer, millis);
+	return ts;
 }
 
 void *logging_thread(void *args) {
@@ -272,10 +290,12 @@ void *logging_thread(void *args) {
 		char *ts = get_current_time_stamp();
 		log_info_t *msg = this->pop_front();
 		this->current_file_size +=
-			fprintf(this->logfile, "%s [%lu] %s : %s:%d > %s", ts, msg->tid, get_log_str(msg->level),
+			fprintf(this->logfile, "%s [%lu] %s : %s:%d > [ %s ]\n", ts, msg->tid, get_log_str(msg->level),
 			        msg->func,
 			        msg->line, msg->log_line);
 		fflush(this->logfile);
+		free(msg->func);
+		free(msg->log_line);
 		free(msg);
 		free(ts);
 
@@ -286,13 +306,61 @@ void *logging_thread(void *args) {
 	return NULL;
 }
 
-bool compress_log_file(void) {
-	TAR *tar = NULL;
-	char *save_dir = ".";
-	tar_open(&tar, this->filename, NULL, O_WRONLY | O_CREAT, 0644, TAR_IGNORE_MAGIC);
-	tar_append_tree(tar, this->file_path, save_dir);
-	tar_append_eof(tar);
-	tar_close(tar);
+unsigned long file_size(char *filename) {
+	FILE *pFile = fopen(filename, "rb");
+	fseek(pFile, 0, SEEK_END);
+	unsigned long size = ftell(pFile);
+	fclose(pFile);
+	return size;
+}
 
-	return (errno == 0);
+bool do_compress(char *in, char *out) {
+	FILE *infile = fopen(in, "r");
+	gzFile outfile = gzopen(out, "wb");
+
+	return_if(!infile || !outfile, false);
+
+	char inbuffer[KB(4)];
+	int num_read = 0;
+	unsigned long total_read = 0, total_wrote = 0;
+	while ((num_read = fread(inbuffer, 1, sizeof(inbuffer), infile)) > 0) {
+		total_read += num_read;
+		gzwrite(outfile, inbuffer, num_read);
+	}
+	fclose(infile);
+	gzclose(outfile);
+	printf("Read %ld bytes, Wrote %ld bytes, Compression factor %4.2f%%n",
+	       total_read,
+	       file_size(out),
+	       (1.0 - file_size(out) * 1.0 / total_read) * 100.0);
+}
+
+void *compress_log_file(void *args) {
+	compressor_params_t *params = args;
+	size_t len = strlen(params->orig_filename) + 3;
+	params->compressed_filename = calloc(len, sizeof(char));
+	snprintf(params->compressed_filename, len, "%s.z", params->orig_filename);
+
+	do_compress(params->orig_filename, params->compressed_filename);
+
+//	TAR *tar = NULL;
+//	tar_open(&tar, params->compressed_filename, NULL, O_WRONLY | O_CREAT, 0644, TAR_IGNORE_MAGIC);
+//	tar_append_tree(tar, this->filename, this->file_path);
+//	tar_append_eof(tar);
+//	tar_close(tar);
+
+	free(params->compressed_filename);
+	free(params->orig_filename);
+	free(params);
+	pthread_exit(NULL);
+}
+
+bool ignite_compressor_routine(void) {
+	compressor_params_t *params = calloc(1, sizeof(compressor_params_t));
+	params->file_path = this->file_path;
+	params->orig_filename = this->filename;
+	this->filename = NULL;
+
+	pthread_create(&this->compressorThread, NULL, &compress_log_file, params);
+	pthread_detach(this->compressorThread);
 }

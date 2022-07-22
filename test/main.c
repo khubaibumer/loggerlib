@@ -2,9 +2,11 @@
 #include "logger.h"
 
 int main(int argc, char **argv) {
+	(void)argc;
+	(void)argv;
 
-  create_logger("/home/khubaibumer/");
-  set_max_file_size(KB(2));
+  create_logger("/home/khubaibumer/logs");
+  set_max_file_size(KB(3));
 
   get_logger()->trace(__func__, __LINE__, "%s\n", "powwow");
 
