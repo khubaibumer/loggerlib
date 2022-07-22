@@ -109,9 +109,9 @@ char *mkfile_name(bool startup) {
 	size_t bytes = strftime(buffer, 48, "%Y_%m_%d_%H_%M_%S", tm_info);
 	char *time_stamp = calloc(40 + bytes, sizeof(char));
 	if (startup) {
-		sprintf(time_stamp, "LogFile_%s_%03ld_startup.log", buffer, millis);
+		snprintf(time_stamp, 40 + bytes,"LogFile_%s_%03ld_startup.log", buffer, millis);
 	} else {
-		sprintf(time_stamp, "LogFile_%s_%03ld.log", buffer, millis);
+		snprintf(time_stamp, 40 + bytes, "LogFile_%s_%03ld.log", buffer, millis);
 	}
 	return time_stamp;
 }
@@ -271,7 +271,7 @@ char *get_current_time_stamp() {
 	strftime(buffer, sizeof(buffer), "%Y %m %d %H:%M:%S", tm_info);
 	size_t len = strlen(buffer) + 5;
 	char *ts = calloc(len, sizeof(char));
-	sprintf(ts, "%s,%03ld", buffer, millis);
+	snprintf(ts, len + 6, "%s,%03ld", buffer, millis);
 	return ts;
 }
 
@@ -329,7 +329,7 @@ bool do_compress(char *in, char *out) {
 	}
 	fclose(infile);
 	gzclose(outfile);
-	printf("Read %ld bytes, Wrote %ld bytes, Compression factor %4.2f%%n",
+	printf("Read %lud bytes, Wrote %ld bytes, Compression factor %4.2f%%n",
 	       total_read,
 	       file_size(out),
 	       (1.0 - file_size(out) * 1.0 / total_read) * 100.0);
@@ -340,14 +340,7 @@ void *compress_log_file(void *args) {
 	size_t len = strlen(params->orig_filename) + 3;
 	params->compressed_filename = calloc(len, sizeof(char));
 	snprintf(params->compressed_filename, len, "%s.z", params->orig_filename);
-
 	do_compress(params->orig_filename, params->compressed_filename);
-
-//	TAR *tar = NULL;
-//	tar_open(&tar, params->compressed_filename, NULL, O_WRONLY | O_CREAT, 0644, TAR_IGNORE_MAGIC);
-//	tar_append_tree(tar, this->filename, this->file_path);
-//	tar_append_eof(tar);
-//	tar_close(tar);
 
 	free(params->compressed_filename);
 	free(params->orig_filename);
