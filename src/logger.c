@@ -147,9 +147,9 @@ char *mkfile_name(bool startup) {
 	size_t bytes = strftime(buffer, 48, "%Y_%m_%d_%H_%M_%S", tm_info);
 	char *time_stamp = calloc(40 + bytes, sizeof(char));
 	if (startup) {
-		snprintf(time_stamp, 40 + bytes,"LogFile_%s_%03u_startup.log", buffer, millis);
+		snprintf(time_stamp, 40 + bytes,"LogFile_%s_%03zu_startup.log", buffer, millis);
 	} else {
-		snprintf(time_stamp, 40 + bytes, "LogFile_%s_%03u.log", buffer, millis);
+		snprintf(time_stamp, 40 + bytes, "LogFile_%s_%03zu.log", buffer, millis);
 	}
 	return time_stamp;
 }
@@ -307,7 +307,7 @@ char *get_current_time_stamp() {
 	strftime(buffer, sizeof(buffer), "%Y %m %d %H:%M:%S", tm_info);
 	size_t len = strlen(buffer) + 5;
 	char *ts = calloc(len, sizeof(char));
-	snprintf(ts, len + 6, "%s,%03lu", buffer, millis);
+	snprintf(ts, len + 6, "%s,%03zu", buffer, millis);
 	return ts;
 }
 
