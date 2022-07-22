@@ -365,7 +365,7 @@ bool do_compress(char *in, char *out) {
 	}
 	fclose(infile);
 	gzclose(outfile);
-	printf("Read %lud bytes, Wrote %ld bytes, Compression factor %4.2f%%n",
+	printf("Read %lud bytes, Wrote %lu bytes, Compression factor %4.2f%%n\n",
 	       total_read,
 	       file_size(out),
 	       (1.0 - file_size(out) * 1.0 / total_read) * 100.0);
