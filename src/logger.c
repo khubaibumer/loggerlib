@@ -40,7 +40,7 @@ DECLARE_PRINT_FUNC(LOG_DEBUG);
 DECLARE_PRINT_FUNC(LOG_INFO);
 DECLARE_PRINT_FUNC(LOG_WARN);
 DECLARE_PRINT_FUNC(LOG_ERROR);
-log_info_t *prepare_data(const char *fn, const int ln, kLogLevel level);
+log_info_t *prepare_data(const char *fn, int ln, kLogLevel level);
 bool change_log_level(kLogLevel level);
 void change_file(void);
 void *logging_thread(void *args);
@@ -107,15 +107,15 @@ static logger_t logger = {
 
 static loggerData_t *this = NULL;
 
-GENERATE_PRINT_FUNC(LOG_TRACE);
+GENERATE_PRINT_FUNC(LOG_TRACE)
 
-GENERATE_PRINT_FUNC(LOG_DEBUG);
+GENERATE_PRINT_FUNC(LOG_DEBUG)
 
-GENERATE_PRINT_FUNC(LOG_INFO);
+GENERATE_PRINT_FUNC(LOG_INFO)
 
-GENERATE_PRINT_FUNC(LOG_WARN);
+GENERATE_PRINT_FUNC(LOG_WARN)
 
-GENERATE_PRINT_FUNC(LOG_ERROR);
+GENERATE_PRINT_FUNC(LOG_ERROR)
 
 char *mkfile_name(bool startup, size_t *len) {
 	time_t timer;
@@ -194,7 +194,7 @@ bool close_logger(void) {
 	free(this);
 }
 
-log_info_t *prepare_data(const char *fn, const int ln, kLogLevel level) {
+log_info_t *prepare_data(const char *fn, int ln, kLogLevel level) {
 	log_info_t *info = calloc(1, sizeof(log_info_t));
 	info->level = level;
 	info->tid = syscall(SYS_gettid);
@@ -251,9 +251,9 @@ char *get_current_time_stamp() {
 	size_t millis = (size_t)(curtime.tv_nsec / 1.0e6);
 
 	size_t time_len = strftime(buffer, sizeof(buffer), "%Y %m %d %H:%M:%S", tm_info);
-	size_t len = strnlen(buffer, time_len) + 5;
+	size_t len = strnlen(buffer, time_len) + 10;
 	char *ts = calloc(len, sizeof(char));
-	snprintf(ts, len + 6, "%s,%03zu", buffer, millis);
+	snprintf(ts, len, "%s,%03zu", buffer, millis);
 	return ts;
 }
 
@@ -303,7 +303,7 @@ bool do_compress(char *in, char *out) {
 	return_if(!infile || !outfile, false);
 
 	char inbuffer[KB(4)];
-	size_t num_read = 0;
+	size_t num_read;
 	size_t total_read = 0;
 	while ((num_read = fread(inbuffer, 1, sizeof(inbuffer), infile)) > 0) {
 		total_read += num_read;
