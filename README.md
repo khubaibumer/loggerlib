@@ -19,18 +19,18 @@ Close the logging library
 Automatically changes the file when max size is reached
 
 ## Macros
-* TRACE(fmt, ...)
-* DEBUG(fmt, ...)
-* INFO(fmt, ...)
-* WARN(fmt, ...)
-* ERROR(fmt, ...)
+*  TRACE(fmt, ...)
+*  DEBUG(fmt, ...)
+*  INFO(fmt, ...)
+*  WARN(fmt, ...)
+*  ERROR(fmt, ...)
 
 ## Sample Code
 
-```
-  create_logger("/home/khubaibumer/logs");
+  ```
+  create_logger("/va/logs/LoggerTest");
   set_max_file_size(KB(3));
-  get_logger()->trace(__func__, __LINE__, "%s\n", "powwow");
+  get_logger()->trace(__func__, __LINE__, "%s\n", "ftw");
   TRACE("%s\n", "Wow!!!");
   close_logger();
-```
+  ```
