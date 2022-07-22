@@ -1,101 +1,29 @@
 #include <unistd.h>
+#include <assert.h>
 #include "logger.h"
 
 int main(int argc, char **argv) {
-	(void)argc;
-	(void)argv;
 
-  create_logger("/home/khubaibumer/logs");
-  set_max_file_size(KB(3));
+	assert(argc > 1);
+	create_logger("/home/khubaibumer/logs");
+	set_max_file_size(KB(3));
 
-  get_logger()->trace(__func__, __LINE__, "%s\n", "powwow");
+	get_logger()->trace(__func__, __LINE__, "%s\n", "powwow");
 
-  TRACE("%s\n", "Wow!!!");
+	TRACE("%s\n", "Wow!!!");
 
-  TRACE("%d %s\n", 123, "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  DEBUG("%d %s\n", 345, "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  INFO ("%d %s\n", 567, "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  WARN ("%d %s\n", 987, "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  ERROR("%d %s\n", 110, "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  TRACE("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  DEBUG("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  INFO("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  WARN("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  ERROR("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  TRACE("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  DEBUG("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  INFO("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  WARN("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  ERROR("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  TRACE("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  DEBUG("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  INFO("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  WARN("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  ERROR("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  TRACE("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  DEBUG("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  INFO("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  WARN("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  ERROR("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  TRACE("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  DEBUG("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  INFO("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  WARN("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  ERROR("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  TRACE("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  DEBUG("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  INFO("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  WARN("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  ERROR("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  TRACE("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  DEBUG("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  INFO("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  WARN("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  ERROR("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  TRACE("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  DEBUG("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  INFO("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  WARN("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  ERROR("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  TRACE("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  DEBUG("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  INFO("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  WARN("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  ERROR("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  TRACE("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  DEBUG("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  INFO("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  WARN("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  ERROR("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  TRACE("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  DEBUG("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  INFO("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  WARN("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  ERROR("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  TRACE("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  DEBUG("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  INFO("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  WARN("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  ERROR("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  TRACE("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  DEBUG("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  INFO("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  WARN("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  ERROR("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  TRACE("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  DEBUG("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  INFO("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  WARN("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  ERROR("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  TRACE("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  DEBUG("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  INFO("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  WARN("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
-  ERROR("%s\n", "ancfjrqwjkyhfasurhwqerbdfisfgliwefweyhgrdfbiwfgbywehvrdfqwargdfdwhgfbwljhard");
+	char inbuffer[KB(4)];
+	size_t num_read;
+	FILE *ptr = fopen(argv[1], "r");
+	assert(ptr != NULL);
+	while ((num_read = fread(inbuffer, 1, sizeof(inbuffer), ptr)) > 0) {
+		INFO("%s", inbuffer);
+	}
+	fclose(ptr);
 
-  sleep(120);
+	sleep(10);
 
-  close_logger();
+	close_logger();
 
-  return 0;
+	return 0;
 }

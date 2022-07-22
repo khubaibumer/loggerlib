@@ -72,7 +72,7 @@ typedef struct {
 	kLogLevel log_level;
 	bool is_running;
 	pthread_t loggerThread;
-	thread_t compressorThread;
+	pthread_spinlock_t workerLock;
 
 	struct {
 		TAILQ_HEAD(tailhead, log_info) head;
@@ -145,6 +145,7 @@ logger_t *create_logger(const char *path) {
 		this = calloc(1, sizeof(loggerData_t));
 		this->logger = &logger;
 		pthread_spin_init(&GET_PRIVATE(this).queue_lock, 0);
+		pthread_spin_init(&this->workerLock, 0);
 		this->file_path = strdup(path);
 		this->lock = &queue_lock;
 		this->unlock = &queue_unlock;
@@ -310,6 +311,7 @@ bool do_compress(char *in, char *out) {
 		gzwrite(outfile, inbuffer, num_read);
 	}
 	fclose(infile);
+	remove(in);
 	gzclose(outfile);
 	printf("Read %zu bytes, Wrote %lu bytes, Compression factor %4.2f%%n\n",
 	       total_read,
@@ -331,12 +333,15 @@ void *compress_log_file(void *args) {
 }
 
 bool ignite_compressor_routine(void) {
+	pthread_spin_lock(&this->workerLock);
 	compressor_params_t *params = calloc(1, sizeof(compressor_params_t));
 	params->file_path = this->file_path;
 	params->orig_filename = this->filename;
 	params->filename_len = this->filename_len;
 	this->filename = NULL;
 
-	pthread_create(&this->compressorThread, NULL, &compress_log_file, params);
-	pthread_detach(this->compressorThread);
+	pthread_t worker;
+	pthread_create(&worker, NULL, &compress_log_file, params);
+	pthread_detach(worker);
+	pthread_spin_unlock(&this->workerLock);
 }

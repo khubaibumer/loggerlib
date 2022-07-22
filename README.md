@@ -26,7 +26,6 @@ Automatically changes the file when max size is reached
 *  ERROR(fmt, ...)
 
 ## Sample Code
-
   ```
   create_logger("/va/logs/LoggerTest");
   set_max_file_size(KB(3));
