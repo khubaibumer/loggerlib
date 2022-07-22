@@ -13,19 +13,17 @@
 
 #define GENERATE_PRINT_FUNC(LEVEL) \
     void print_##LEVEL(const char *fn, int ln, const char *fmt, ...) { \
-        return_if(this->log_level > LEVEL, );                       \
-                                      \
-        log_info_t *info = prepare_data(fn, ln, LEVEL);                   \
-        va_list temp, args;                 \
-        va_start(temp, fmt);          \
-        va_copy(args, temp);          \
-        size_t len = vsnprintf(NULL, 0, fmt, temp);                       \
-        va_end(temp);                       \
-        info->log_line = calloc(len + 2, sizeof(char));                   \
-        vsnprintf(info->log_line, len, fmt, args);                        \
-        va_end(args);                 \
-                                      \
-        this->push_back(info);\
+        return_if(this->log_level > LEVEL, ); \
+        log_info_t *info = prepare_data(fn, ln, LEVEL); \
+        va_list temp, args; \
+        va_start(temp, fmt); \
+        va_copy(args, temp); \
+        size_t len = vsnprintf(NULL, 0, fmt, temp); \
+        va_end(temp); \
+        info->log_line = calloc(len + 2, sizeof(char)); \
+        vsnprintf(info->log_line, len, fmt, args); \
+        va_end(args); \
+        this->push_back(info); \
     }
 
 #define DECLARE_PRINT_FUNC(LEVEL) \
@@ -149,9 +147,9 @@ char *mkfile_name(bool startup) {
 	size_t bytes = strftime(buffer, 48, "%Y_%m_%d_%H_%M_%S", tm_info);
 	char *time_stamp = calloc(40 + bytes, sizeof(char));
 	if (startup) {
-		snprintf(time_stamp, 40 + bytes,"LogFile_%s_%03ld_startup.log", buffer, millis);
+		snprintf(time_stamp, 40 + bytes,"LogFile_%s_%03lu_startup.log", buffer, millis);
 	} else {
-		snprintf(time_stamp, 40 + bytes, "LogFile_%s_%03ld.log", buffer, millis);
+		snprintf(time_stamp, 40 + bytes, "LogFile_%s_%03lu.log", buffer, millis);
 	}
 	return time_stamp;
 }
@@ -309,7 +307,7 @@ char *get_current_time_stamp() {
 	strftime(buffer, sizeof(buffer), "%Y %m %d %H:%M:%S", tm_info);
 	size_t len = strlen(buffer) + 5;
 	char *ts = calloc(len, sizeof(char));
-	snprintf(ts, len + 6, "%s,%03ld", buffer, millis);
+	snprintf(ts, len + 6, "%s,%03lu", buffer, millis);
 	return ts;
 }
 
