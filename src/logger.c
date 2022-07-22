@@ -31,18 +31,6 @@
 
 #define FUNC_PTR_PRINT(LEVEL) print_##LEVEL
 
-//#define GENERATE_PRINT(info, fmt) \
-//({                       \
-//    va_list temp, args;     \
-//    va_start(temp, (fmt)); \
-//    va_copy(args, temp); \
-//    size_t len = vsnprintf(NULL, 0, (fmt), temp); \
-//    va_end(temp);           \
-//    (info)->log_line = calloc(len + 1, sizeof(char)); \
-//    vsnprintf((info)->log_line, len, (fmt), args);  \
-//    va_end(args);\
-//})
-
 #define GET_PRIVATE(x) (x)->private
 
 /* Forward Declarations */
@@ -52,11 +40,6 @@ DECLARE_PRINT_FUNC(LOG_DEBUG);
 DECLARE_PRINT_FUNC(LOG_INFO);
 DECLARE_PRINT_FUNC(LOG_WARN);
 DECLARE_PRINT_FUNC(LOG_ERROR);
-//void print_trace(const char *fn, int ln, const char *fmt, ...);
-//void print_debug(const char *fn, int ln, const char *fmt, ...);
-//void print_info(const char *fn, int ln, const char *fmt, ...);
-//void print_warn(const char *fn, int ln, const char *fmt, ...);
-//void print_error(const char *fn, int ln, const char *fmt, ...);
 log_info_t *prepare_data(const char *fn, const int ln, kLogLevel level);
 bool change_log_level(kLogLevel level);
 void change_file(void);
@@ -233,46 +216,6 @@ log_info_t *pop_from_queue() {
 	this->unlock();
 	return msg;
 }
-
-//void print_trace(const char *fn, int ln, const char *fmt, ...) {
-//	return_if(this->log_level > LOG_TRACE,);
-//
-//	log_info_t *info = prepare_data(fn, ln, LOG_TRACE);
-//	GENERATE_PRINT(info, fmt);
-//	this->push_back(info);
-//}
-//
-//void print_debug(const char *fn, int ln, const char *fmt, ...) {
-//	return_if(this->log_level > LOG_DEBUG,);
-//
-//	log_info_t *info = prepare_data(fn, ln, LOG_DEBUG);
-//	GENERATE_PRINT(info, fmt);
-//	this->push_back(info);
-//}
-//
-//void print_info(const char *fn, int ln, const char *fmt, ...) {
-//	return_if(this->log_level > LOG_INFO,);
-//
-//	log_info_t *info = prepare_data(fn, ln, LOG_INFO);
-//	GENERATE_PRINT(info, fmt);
-//	this->push_back(info);
-//}
-//
-//void print_warn(const char *fn, int ln, const char *fmt, ...) {
-//	return_if(this->log_level > LOG_WARN,);
-//
-//	log_info_t *info = prepare_data(fn, ln, LOG_WARN);
-//	GENERATE_PRINT(info, fmt);
-//	this->push_back(info);
-//}
-//
-//void print_error(const char *fn, int ln, const char *fmt, ...) {
-//	return_if(this->log_level > LOG_ERROR,);
-//
-//	log_info_t *info = prepare_data(fn, ln, LOG_ERROR);
-//	GENERATE_PRINT(info, fmt);
-//	this->push_back(info);
-//}
 
 const char *get_log_str(kLogLevel level) {
 	switch (level) {
