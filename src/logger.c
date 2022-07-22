@@ -84,6 +84,7 @@ typedef struct {
 	char *file_path;
 	size_t max_file_size;
 	char *filename;
+	size_t filename_len;
 	FILE *logfile;
 	kLogLevel log_level;
 	bool is_running;
@@ -105,6 +106,7 @@ typedef struct {
 
 typedef struct {
 	char *orig_filename;
+	size_t filename_len;
 	char *compressed_filename;
 	const char *file_path;
 } compressor_params_t;
@@ -132,7 +134,7 @@ GENERATE_PRINT_FUNC(LOG_WARN);
 
 GENERATE_PRINT_FUNC(LOG_ERROR);
 
-char *mkfile_name(bool startup) {
+char *mkfile_name(bool startup, size_t *len) {
 	time_t timer;
 	char buffer[48] = {0};
 	struct tm *tm_info;
@@ -145,11 +147,12 @@ char *mkfile_name(bool startup) {
 	size_t millis = (size_t)(curtime.tv_nsec / 1.0e6);
 
 	size_t bytes = strftime(buffer, 48, "%Y_%m_%d_%H_%M_%S", tm_info);
-	char *time_stamp = calloc(40 + bytes, sizeof(char));
+	*len = 40 + bytes;
+	char *time_stamp = calloc(*len, sizeof(char));
 	if (startup) {
-		snprintf(time_stamp, 40 + bytes,"LogFile_%s_%03zu_startup.log", buffer, millis);
+		snprintf(time_stamp, *len,"LogFile_%s_%03zu_startup.log", buffer, millis);
 	} else {
-		snprintf(time_stamp, 40 + bytes, "LogFile_%s_%03zu.log", buffer, millis);
+		snprintf(time_stamp, *len, "LogFile_%s_%03zu.log", buffer, millis);
 	}
 	return time_stamp;
 }
@@ -169,7 +172,7 @@ logger_t *create_logger(const char *path) {
 
 	assert(chdir(this->file_path) == 0);
 	this->is_running = true;
-	this->filename = mkfile_name(true);
+	this->filename = mkfile_name(true, &this->filename_len);
 	this->logfile = fopen(this->filename, "w+");
 	TAILQ_INIT(&GET_PRIVATE(this).head);
 
@@ -287,7 +290,7 @@ void change_file() {
 	printf("Changing File, current File Size %zu\n", this->current_file_size);
 	fclose(this->logfile);
 	this->ignite_compressor();
-	this->filename = mkfile_name(false);
+	this->filename = mkfile_name(false, &this->filename_len);
 	this->logfile = fopen(this->filename, "w+");
 	assert(this->logfile != NULL);
 	this->current_file_size = 0;
@@ -304,8 +307,8 @@ char *get_current_time_stamp() {
 	clock_gettime(CLOCK_MONOTONIC, &curtime);
 	size_t millis = (size_t)(curtime.tv_nsec / 1.0e6);
 
-	strftime(buffer, sizeof(buffer), "%Y %m %d %H:%M:%S", tm_info);
-	size_t len = strlen(buffer) + 5;
+	size_t time_len = strftime(buffer, sizeof(buffer), "%Y %m %d %H:%M:%S", tm_info);
+	size_t len = strnlen(buffer, time_len) + 5;
 	char *ts = calloc(len, sizeof(char));
 	snprintf(ts, len + 6, "%s,%03zu", buffer, millis);
 	return ts;
@@ -357,8 +360,8 @@ bool do_compress(char *in, char *out) {
 	return_if(!infile || !outfile, false);
 
 	char inbuffer[KB(4)];
-	int num_read = 0;
-	unsigned long total_read = 0, total_wrote = 0;
+	size_t num_read = 0;
+	size_t total_read = 0;
 	while ((num_read = fread(inbuffer, 1, sizeof(inbuffer), infile)) > 0) {
 		total_read += num_read;
 		gzwrite(outfile, inbuffer, num_read);
@@ -373,7 +376,7 @@ bool do_compress(char *in, char *out) {
 
 void *compress_log_file(void *args) {
 	compressor_params_t *params = args;
-	size_t len = strlen(params->orig_filename) + 3;
+	size_t len = strnlen(params->orig_filename, params->filename_len) + 3;
 	params->compressed_filename = calloc(len, sizeof(char));
 	snprintf(params->compressed_filename, len, "%s.z", params->orig_filename);
 	do_compress(params->orig_filename, params->compressed_filename);
@@ -388,6 +391,7 @@ bool ignite_compressor_routine(void) {
 	compressor_params_t *params = calloc(1, sizeof(compressor_params_t));
 	params->file_path = this->file_path;
 	params->orig_filename = this->filename;
+	params->filename_len = this->filename_len;
 	this->filename = NULL;
 
 	pthread_create(&this->compressorThread, NULL, &compress_log_file, params);
