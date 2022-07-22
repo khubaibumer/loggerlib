@@ -138,13 +138,13 @@ char *mkfile_name(bool startup, size_t *len) {
 	time_t timer;
 	char buffer[48] = {0};
 	struct tm *tm_info;
-	struct timespec curtime = {0};
+	struct timespec cur_time = {0};
 
 	timer = time(NULL);
 	tm_info = localtime(&timer);
-	clock_gettime(CLOCK_MONOTONIC, &curtime);
+	clock_gettime(CLOCK_MONOTONIC, &cur_time);
 
-	size_t millis = (size_t)(curtime.tv_nsec / 1.0e6);
+	size_t millis = (size_t)(cur_time.tv_nsec / 1.0e6);
 
 	size_t bytes = strftime(buffer, 48, "%Y_%m_%d_%H_%M_%S", tm_info);
 	*len = 40 + bytes;
@@ -368,7 +368,7 @@ bool do_compress(char *in, char *out) {
 	}
 	fclose(infile);
 	gzclose(outfile);
-	printf("Read %lud bytes, Wrote %lu bytes, Compression factor %4.2f%%n\n",
+	printf("Read %zu bytes, Wrote %lu bytes, Compression factor %4.2f%%n\n",
 	       total_read,
 	       file_size(out),
 	       (1.0 - file_size(out) * 1.0 / total_read) * 100.0);
