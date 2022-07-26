@@ -9,7 +9,7 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Install tzdata
+          name: Install tzdata libzlib-dev
           command: 'apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends  tzdata  && rm -rf /var/lib/apt/lists/* '
       - run:
           name: Installing SUDO
