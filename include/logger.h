@@ -5,10 +5,14 @@
 #ifndef LOGGER_INCLUDE_LOGGER_H_
 #define LOGGER_INCLUDE_LOGGER_H_
 
-typedef unsigned char bool;
 typedef unsigned long tid_t;
+
+#ifndef __cplusplus
+typedef unsigned char bool;
 #define true  1
 #define false 0
+#define nullptr NULL
+#endif
 
 #define KB(x) ( (x) * 1000)
 #define MB(x) (KB(x) * 1000)
@@ -36,11 +40,13 @@ typedef struct {
   /// @param level  Requested Log Level
   bool (*update_log_level) (kLogLevel level);
 
+  bool (*update_level) (const char *level);
+
   /// @brief close the current file and start a new file
   void (*cycle_file) (void);
 } logger_t;
 
-logger_t* create_logger(const char *path);
+logger_t* create_logger(const char *service, const char *path);
 
 bool set_max_file_size(size_t max);
 

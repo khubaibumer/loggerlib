@@ -7,7 +7,6 @@
 #include <sys/queue.h>
 #include <fcntl.h>
 #include <zlib.h>
-#include <thread_db.h>
 
 #define return_if(x, y) ({if (x) {return y;}})
 
@@ -18,7 +17,7 @@
         va_list temp, args; \
         va_start(temp, fmt); \
         va_copy(args, temp); \
-        size_t len = vsnprintf(NULL, 0, fmt, temp); \
+        size_t len = vsnprintf(nullptr, 0, fmt, temp); \
         va_end(temp); \
         info->log_line = calloc(len + 2, sizeof(char)); \
         vsnprintf(info->log_line, len, fmt, args); \
@@ -65,6 +64,7 @@ typedef struct {
 	logger_t *logger;
 	size_t current_file_size;
 	char *file_path;
+	char *service;
 	size_t max_file_size;
 	char *filename;
 	size_t filename_len;
@@ -105,7 +105,7 @@ static logger_t logger = {
 	.cycle_file = &change_file
 };
 
-static loggerData_t *this = NULL;
+static loggerData_t *this = nullptr;
 
 GENERATE_PRINT_FUNC(LOG_TRACE)
 
@@ -117,13 +117,20 @@ GENERATE_PRINT_FUNC(LOG_WARN)
 
 GENERATE_PRINT_FUNC(LOG_ERROR)
 
+void logger_free(void *ptr) {
+	if (ptr) {
+		free(ptr), ptr = nullptr;
+	}
+}
+
+
 char *mkfile_name(bool startup, size_t *len) {
 	time_t timer;
 	char buffer[48] = {0};
 	struct tm *tm_info;
 	struct timespec cur_time = {0};
 
-	timer = time(NULL);
+	timer = time(nullptr);
 	tm_info = localtime(&timer);
 	clock_gettime(CLOCK_MONOTONIC, &cur_time);
 
@@ -140,9 +147,10 @@ char *mkfile_name(bool startup, size_t *len) {
 	return time_stamp;
 }
 
-logger_t *create_logger(const char *path) {
-	if (this == NULL) {
+logger_t *create_logger(const char *service, const char *path) {
+	if (this == nullptr) {
 		this = calloc(1, sizeof(loggerData_t));
+		this->service = strdup(service);
 		this->logger = &logger;
 		pthread_spin_init(&GET_PRIVATE(this).queue_lock, 0);
 		pthread_spin_init(&this->workerLock, 0);
@@ -160,12 +168,12 @@ logger_t *create_logger(const char *path) {
 	this->logfile = fopen(this->filename, "w+");
 	TAILQ_INIT(&GET_PRIVATE(this).head);
 
-	pthread_create(&this->loggerThread, NULL, logging_thread, NULL);
+	pthread_create(&this->loggerThread, nullptr, logging_thread, nullptr);
 	pthread_detach(this->loggerThread);
 }
 
 bool set_max_file_size(size_t max) {
-	if (this == NULL)
+	if (this == nullptr)
 		return false;
 
 	this->max_file_size = max;
@@ -191,8 +199,9 @@ void queue_unlock(void) {
 bool close_logger(void) {
 	this->is_running = false;
 	fclose(this->logfile);
-	free(this->file_path);
-	free(this);
+	logger_free(this->file_path);
+	logger_free(this->service);
+	logger_free(this);
 }
 
 log_info_t *prepare_data(const char *fn, int ln, kLogLevel level) {
@@ -236,7 +245,7 @@ void change_file() {
 	this->ignite_compressor();
 	this->filename = mkfile_name(false, &this->filename_len);
 	this->logfile = fopen(this->filename, "w+");
-	assert(this->logfile != NULL);
+	assert(this->logfile != nullptr);
 	this->current_file_size = 0;
 }
 
@@ -246,7 +255,7 @@ char *get_current_time_stamp() {
 	struct tm *tm_info;
 	struct timespec curtime = {0};
 
-	timer = time(NULL);
+	timer = time(nullptr);
 	tm_info = localtime(&timer);
 	clock_gettime(CLOCK_MONOTONIC, &curtime);
 	size_t millis = (size_t)(curtime.tv_nsec / 1.0e6);
@@ -267,7 +276,7 @@ void *logging_thread(void *args) {
 
 	while (this->is_running) {
 		while (TAILQ_EMPTY(&GET_PRIVATE(this).head)) {
-			nanosleep(&sleep_time, NULL);
+			nanosleep(&sleep_time, nullptr);
 		}
 
 		char *ts = get_current_time_stamp();
@@ -277,16 +286,16 @@ void *logging_thread(void *args) {
 			        msg->func,
 			        msg->line, msg->log_line);
 		fflush(this->logfile);
-		free(msg->func);
-		free(msg->log_line);
-		free(msg);
-		free(ts);
+		logger_free(msg->func);
+		logger_free(msg->log_line);
+		logger_free(msg);
+		logger_free(ts);
 
 		if (this->current_file_size >= this->max_file_size) {
 			this->logger->cycle_file();
 		}
 	}
-	return NULL;
+	return nullptr;
 }
 
 unsigned long file_size(char *filename) {
@@ -326,10 +335,10 @@ void *compress_log_file(void *args) {
 	snprintf(params->compressed_filename, len, "%s.z", params->orig_filename);
 	do_compress(params->orig_filename, params->compressed_filename);
 
-	free(params->compressed_filename);
-	free(params->orig_filename);
-	free(params);
-	pthread_exit(NULL);
+	logger_free(params->compressed_filename);
+	logger_free(params->orig_filename);
+	logger_free(params);
+	pthread_exit(nullptr);
 }
 
 bool ignite_compressor_routine(void) {
@@ -338,10 +347,10 @@ bool ignite_compressor_routine(void) {
 	params->file_path = this->file_path;
 	params->orig_filename = this->filename;
 	params->filename_len = this->filename_len;
-	this->filename = NULL;
+	this->filename = nullptr;
 
 	pthread_t worker;
-	pthread_create(&worker, NULL, &compress_log_file, params);
+	pthread_create(&worker, nullptr, &compress_log_file, params);
 	pthread_detach(worker);
 	pthread_spin_unlock(&this->workerLock);
 }
