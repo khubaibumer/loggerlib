@@ -9,7 +9,7 @@
 #include <zlib.h>
 #include <semaphore.h>
 #include <dirent.h>
-#include <stdatomic.h>
+
 
 #define return_if(x, y) ({if (x) {return y;}})
 
@@ -52,8 +52,6 @@ bool push_to_queue(log_info_t *);
 log_info_t *pop_from_queue(void);
 void* zip_file_routine(void *);
 void zip_all_uncompressed_files(void);
-//bool ignite_compressor_routine(void);
-//void *compress_log_file(void *);
 
 typedef struct log_info {
 	tid_t tid;
@@ -97,13 +95,6 @@ typedef struct {
 	log_info_t *(*pop_front)(void);
 
 } loggerData_t;
-
-//typedef struct {
-//	char *orig_filename;
-//	size_t filename_len;
-//	char *compressed_filename;
-//	const char *file_path;
-//} compressor_params_t;
 
 static logger_t logger = {
 	.trace = &FUNC_PTR_PRINT(LOG_TRACE),
@@ -385,30 +376,3 @@ void zip_all_uncompressed_files(void) {
 	}
 	closedir(cwd);
 }
-
-//void *compress_log_file(void *args) {
-//	compressor_params_t *params = args;
-//	size_t len = strnlen(params->orig_filename, params->filename_len) + 3;
-//	params->compressed_filename = calloc(len, sizeof(char));
-//	snprintf(params->compressed_filename, len, "%s.z", params->orig_filename);
-//	do_compress(params->orig_filename, params->compressed_filename);
-//
-//	logger_free(params->compressed_filename);
-//	logger_free(params->orig_filename);
-//	logger_free(params);
-//	pthread_exit(nullptr);
-//}
-
-//bool ignite_compressor_routine(void) {
-//	pthread_spin_lock(&_this->workerLock);
-//	compressor_params_t *params = calloc(1, sizeof(compressor_params_t));
-//	params->file_path = _this->file_path;
-//	params->orig_filename = _this->filename;
-//	params->filename_len = _this->filename_len;
-//	_this->filename = nullptr;
-//
-//	pthread_t worker;
-//	pthread_create(&worker, nullptr, &compress_log_file, params);
-//	pthread_detach(worker);
-//	pthread_spin_unlock(&_this->workerLock);
-//}
